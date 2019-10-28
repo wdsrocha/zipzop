@@ -1,11 +1,11 @@
-from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox
 import sys
-from ui_client import Ui_Client
+
 from qtpy.QtNetwork import QTcpSocket
+from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox
 
-
-from login_widget import LoginWidget
 from chat_widget import ChatWidget
+from login_widget import LoginWidget
+
 
 class Client(QMainWindow):
     def __init__(self, *args, **kwargs):

@@ -1,6 +1,7 @@
-from qtpy.QtWidgets import QApplication, QWidget
-from qtpy.QtNetwork import QTcpServer
 import sys
+
+from qtpy.QtNetwork import QTcpServer
+from qtpy.QtWidgets import QApplication
 
 
 class Server(QTcpServer):
@@ -37,7 +38,6 @@ class Server(QTcpServer):
             nickname = self.clients[client]['nickname']
             message = f'say <{nickname}>: {" ".join(data[1:])}'
             self.sendToAll(message)
-
 
     def send(self, client, message):
         client.write(message.encode('utf-8'))
