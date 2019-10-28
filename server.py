@@ -20,7 +20,7 @@ class Server(QTcpServer):
     def disconnectClient(self):
         client = self.sender()
         nickname = self.clients[client]['nickname']
-        self.sendToAll(f'{nickname} has left the chat.')
+        self.sendToAll(f'say {nickname} has left the chat.')
         self.clients.pop(client)
 
     def readData(self):
@@ -28,17 +28,21 @@ class Server(QTcpServer):
         data = client.readLine().data().decode('utf-8').split()
         request = data[0]
         if request == 'login':
-            nickname = data[1]
+            nickname = " ".join(data[1:])
             if not self.isRepeatedNickname(nickname):
                 self.clients[client]['nickname'] = nickname
-            self.sendToAll(
-                f'{self.clients[client]["nickname"]} has joined the chat.')
+            nickname = self.clients[client]['nickname']
+            self.sendToAll(f'say {nickname} has joined the chat.')
+        elif request == 'say':
+            nickname = self.clients[client]['nickname']
+            message = f'say <{nickname}>: {" ".join(data[1:])}'
+            self.sendToAll(message)
+
 
     def send(self, client, message):
         client.write(message.encode('utf-8'))
 
     def sendToAll(self, message):
-        print(message)
         for client in self.clients:
             self.send(client, message)
 

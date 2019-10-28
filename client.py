@@ -22,6 +22,7 @@ class Client(QMainWindow):
         self.loginWidget.ui.pushButton.clicked.connect(self.connectToHost)
         self.socket.readyRead.connect(self.readData)
         self.socket.error.connect(self.displayConnectionError)
+        self.chatWidget.ui.pushButton.clicked.connect(self.sendUserMessage)
 
     def connectToHost(self):
         hostAddress = self.loginWidget.ui.addressLineEdit.text()
@@ -36,8 +37,19 @@ class Client(QMainWindow):
     def send(self, message):
         self.socket.write(message.encode('utf-8'))
 
+    def sendUserMessage(self):
+        userMessage = self.chatWidget.ui.lineEdit.text()
+        message = f'say {userMessage}'
+        self.send(message)
+        self.chatWidget.ui.lineEdit.clear()
+        self.chatWidget.ui.lineEdit.setFocus()
+
     def readData(self):
-        pass
+        server = self.sender()
+        data = server.readLine().data().decode('utf-8').split()
+        response = data[0]
+        if response == 'say':
+            self.chatWidget.ui.textBrowser.append(' '.join(data[1:]))
 
     def displayConnectionError(self):
         QMessageBox.information(self, '', 'Could not connect to host')
