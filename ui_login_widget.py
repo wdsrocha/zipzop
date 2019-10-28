@@ -5,21 +5,21 @@ from qtpy.QtWidgets import (QFormLayout, QLineEdit, QPushButton, QSizePolicy,
 
 class Ui_LoginWidget:
     def setupUi(self, widget: QWidget):
-        self.ipLineEdit = QLineEdit('localhost')
+        self.addressLineEdit = QLineEdit('localhost')
         self.portLineEdit = QLineEdit('8080')
         self.nicknameLineEdit = QLineEdit()
 
         formLayout = QFormLayout()
         formLayout.addRow('&Nickname', self.nicknameLineEdit)
-        formLayout.addRow('Server &IP', self.ipLineEdit)
-        formLayout.addRow('Server &port', self.portLineEdit)
+        formLayout.addRow('Host &address', self.addressLineEdit)
+        formLayout.addRow('Host &port', self.portLineEdit)
 
-        self.connectPushButton = QPushButton('&Connect')
-        self.connectPushButton.setSizePolicy(
+        self.pushButton = QPushButton('&Chat!')
+        self.pushButton.setSizePolicy(
             QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.connectPushButton.setDefault(True)
+        self.pushButton.setDefault(True)
 
         layout = QVBoxLayout(widget)
         layout.addLayout(formLayout)
         layout.addWidget(
-            self.connectPushButton, 1, Qt.AlignTop | Qt.AlignRight)
+            self.pushButton, 1, Qt.AlignTop | Qt.AlignRight)
