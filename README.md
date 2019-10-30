@@ -4,9 +4,9 @@ A qtpy chat application
 
 ## Usage
 
-First, get into the environment
+First, get into the environment and install the dependencies
 
-`pipenv shell`
+`pipenv shell && pipenv install`
 
 Now, start the server
 
