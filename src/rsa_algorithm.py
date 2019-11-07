@@ -27,6 +27,7 @@ class RsaAlgorithm:
 
 
 # TESTANDO A CLASSE
-algo = RsaAlgorithm()
-r_msg = algo.encrypt("Chave que vai ser passada", algo.get_public_key())
-print(algo.decrypt(r_msg))
+if __name__ == '__main__':
+    algo = RsaAlgorithm()
+    r_msg = algo.encrypt("Chave que vai ser passada", algo.get_public_key())
+    print(algo.decrypt(r_msg))

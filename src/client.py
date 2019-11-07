@@ -59,13 +59,14 @@ class Client(QMainWindow):
     def sendUserMessage(self):
         text = self.chatWidget.ui.lineEdit.text()
         text = f'<{self.nickname}>: {text}'
-
-
+        token = str(self.fernetAlgorithm.encrypt(text))
+        key = str(self.fernetAlgorithm.key)
 
         self.send({
             'type': 'say',
             'data': {
-                'text': text
+                'text': token,
+                'key': key
             }
         })
         self.chatWidget.ui.lineEdit.clear()
@@ -81,6 +82,12 @@ class Client(QMainWindow):
             self.chatWidget.ui.textBrowser.append(text)
         elif message['type'] == 'say':
             text = message['data']['text']
+            key = message['data']['key']
+
+            text = str.encode(text[2:len(text)-1])
+            key = str.encode(key[2:len(key)-1])
+
+            text = self.fernetAlgorithm.decrypt(text, key).decode('utf-8')
             self.chatWidget.ui.textBrowser.append(text)
 
     def displayConnectionError(self):

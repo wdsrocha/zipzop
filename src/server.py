@@ -55,13 +55,12 @@ class Server(QTcpServer):
                 }
             })
         elif message['type'] == 'say':
-            nickname = self.clients[client]['nickname']
-            text = message['data']['text']
             self.sendToAll({
                 'type': 'say',
                 'data': {
-                    'nickname': nickname,
-                    'text': text
+                    'nickname': self.clients[client]['nickname'],
+                    'text': message['data']['text'],
+                    'key': message['data']['key']
                 }
             })
 
