@@ -12,6 +12,8 @@ pyqt5 = "*"
 qtpy = "*"
 cryptography = "*"
 pycrypto = "*"
+pycryptodemo = "*"
+pycryptodome = "*"
 
 [requires]
 python_version = "3.6"

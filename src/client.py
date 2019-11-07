@@ -8,6 +8,9 @@ import json
 from chat_widget import ChatWidget
 from login_widget import LoginWidget
 
+from fernet_algorithm import FernetAlgorithm
+from rsa_algorithm import RsaAlgorithm
+
 
 class Client(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -16,9 +19,17 @@ class Client(QMainWindow):
         self.chatWidget = ChatWidget()
         self.setCentralWidget(self.loginWidget)
 
+        self.fernetAlgorithm = FernetAlgorithm()
+
         self.socket = QTcpSocket()
 
         self.setupConnections()
+
+    def send(self, message: dict):
+        self.socket.write(json.dumps(message).encode('utf-8'))
+
+    def read(self, socket) -> dict:
+        return json.loads(socket.readLine().data().decode('utf-8'))
 
     def setupConnections(self):
         self.loginWidget.ui.pushButton.clicked.connect(self.connectToHost)
@@ -32,33 +43,45 @@ class Client(QMainWindow):
         self.socket.connectToHost(hostAddress, port)
         if self.socket.waitForConnected(1000):
             self.nickname = self.loginWidget.ui.nicknameLineEdit.text()
-            message = {
+            self.send({
                 'type': 'login',
                 'data': {
                     'nickname': self.nickname
                 }
-            }
-            self.socket.write(json.dumps(message).encode('utf-8'))
+            })
 
+            # ui
             self.loginWidget.setParent(None)
             self.setCentralWidget(self.chatWidget)
-
-    def send(self, message):
-        self.socket.write(message.encode('utf-8'))
+            self.chatWidget.setMinimumWidth(500)
+            self.chatWidget.setMinimumHeight(300)
 
     def sendUserMessage(self):
-        userMessage = self.chatWidget.ui.lineEdit.text()
-        message = f'say {userMessage}'
-        self.send(message)
+        text = self.chatWidget.ui.lineEdit.text()
+        text = f'<{self.nickname}>: {text}'
+
+
+
+        self.send({
+            'type': 'say',
+            'data': {
+                'text': text
+            }
+        })
         self.chatWidget.ui.lineEdit.clear()
         self.chatWidget.ui.lineEdit.setFocus()
 
     def readData(self):
-        server = self.sender()
-        data = server.readLine().data().decode('utf-8').split()
-        response = data[0]
-        if response == 'say':
-            self.chatWidget.ui.textBrowser.append(' '.join(data[1:]))
+        message = self.read(self.sender())
+
+        if message['type'] == 'logoff_response':
+            pass
+        elif message['type'] == 'login_announce':
+            text = message['data']['text']
+            self.chatWidget.ui.textBrowser.append(text)
+        elif message['type'] == 'say':
+            text = message['data']['text']
+            self.chatWidget.ui.textBrowser.append(text)
 
     def displayConnectionError(self):
         QMessageBox.information(self, '', 'Could not connect to host')

@@ -9,6 +9,8 @@ class LoginWidget(QWidget):
         self.ui = Ui_LoginWidget()
         self.ui.setupUi(self)
 
+        self.ui.nicknameLineEdit.returnPressed.connect(self.ui.pushButton.click)
+
 
 if __name__ == "__main__":
     app = QApplication([])

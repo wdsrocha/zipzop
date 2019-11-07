@@ -11,6 +11,8 @@ class ChatWidget(QWidget):
         self.ui = Ui_ChatWidget()
         self.ui.setupUi(self)
 
+        self.ui.lineEdit.returnPressed.connect(self.ui.pushButton.click)
+
 
 if __name__ == "__main__":
     app = QApplication([])
