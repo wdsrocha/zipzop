@@ -1,7 +1,38 @@
 import sys
+import json
 
 from qtpy.QtNetwork import QTcpServer
-from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication, QLabel
+
+"""Schema
+
+client
+    type login
+    data {
+        nickname
+        public_key
+    }
+
+    type logoff
+    data
+
+    type say
+    data {
+        [
+            
+        ]
+        message
+    }
+
+server
+    type login
+    data {
+
+        [public_key]
+    }
+
+
+"""
 
 
 class Server(QTcpServer):
@@ -26,18 +57,27 @@ class Server(QTcpServer):
 
     def readData(self):
         client = self.sender()
-        data = client.readLine().data().decode('utf-8').split()
-        request = data[0]
-        if request == 'login':
-            nickname = " ".join(data[1:])
-            if not self.isRepeatedNickname(nickname):
-                self.clients[client]['nickname'] = nickname
-            nickname = self.clients[client]['nickname']
-            self.sendToAll(f'say {nickname} has joined the chat.')
-        elif request == 'say':
-            nickname = self.clients[client]['nickname']
-            message = f'say <{nickname}>: {" ".join(data[1:])}'
-            self.sendToAll(message)
+        print(json.loads(client.readLine().data().decode('utf-8')))
+        return 0
+        # print(json.loads(client.readLine().data().decode('utf-8')))
+        print(client)
+        try:
+            data = client.readLine().data().decode('utf-8').split()
+            print(data)
+            request = data[0]
+            if request == 'login':
+                nickname = " ".join(data[1:])
+                if not self.isRepeatedNickname(nickname):
+                    self.clients[client]['nickname'] = nickname
+                nickname = self.clients[client]['nickname']
+                self.sendToAll(f'say {nickname} has joined the chat.')
+            elif request == 'say':
+                nickname = self.clients[client]['nickname']
+                message = f'say <{nickname}>: {" ".join(data[1:])}'
+                self.sendToAll(message)
+        except Exception as e:
+            print(e)
+            print(json.loads(client.read().decode('utf-8')))
 
     def send(self, client, message):
         client.write(message.encode('utf-8'))
@@ -59,6 +99,9 @@ if __name__ == "__main__":
     server = Server()
     port = 8080
     server.listen(port=port)
-    print(f'Server listening on port {port}')
+
+    port_label = QLabel(f'Server listening on port {port}.')
+    port_label.setMargin(30)
+    port_label.show()
 
     sys.exit(app.exec_())

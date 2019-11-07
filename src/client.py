@@ -3,6 +3,8 @@ import sys
 from qtpy.QtNetwork import QTcpSocket
 from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox
 
+import json
+
 from chat_widget import ChatWidget
 from login_widget import LoginWidget
 
@@ -30,7 +32,14 @@ class Client(QMainWindow):
         self.socket.connectToHost(hostAddress, port)
         if self.socket.waitForConnected(1000):
             self.nickname = self.loginWidget.ui.nicknameLineEdit.text()
-            self.send(f'login {self.nickname}')
+            message = {
+                'type': 'login',
+                'data': {
+                    'nickname': self.nickname
+                }
+            }
+            self.socket.write(json.dumps(message).encode('utf-8'))
+
             self.loginWidget.setParent(None)
             self.setCentralWidget(self.chatWidget)
 
