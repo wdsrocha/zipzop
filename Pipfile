@@ -11,8 +11,6 @@ black = "*"
 pyqt5 = "*"
 qtpy = "*"
 cryptography = "*"
-pycrypto = "*"
-pycryptodemo = "*"
 pycryptodome = "*"
 
 [requires]

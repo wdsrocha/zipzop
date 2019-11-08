@@ -1,6 +1,7 @@
 import sys
 import json
 
+
 from qtpy.QtNetwork import QTcpServer, QTcpSocket
 from qtpy.QtWidgets import QApplication, QLabel
 
@@ -38,6 +39,13 @@ class Server(QTcpServer):
         if message['type'] == 'login':
             nickname = message['data']['nickname']
             self.clients[client]['nickname'] = nickname
+            nicknames = [data['nickname'] for data in self.clients.values()]
+            self.send(client, {
+                'type': 'login_response',
+                'data': {
+                    'nicknames': nicknames
+                }
+            })
             self.sendToAll({
                 'type': 'login_announce',
                 'data': {
@@ -75,5 +83,6 @@ if __name__ == "__main__":
     port_label = QLabel(f'Server listening on port {port}.')
     port_label.setMargin(30)
     port_label.show()
+    port_label.setWindowTitle('Server')
 
     sys.exit(app.exec_())
