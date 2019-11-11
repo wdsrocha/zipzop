@@ -96,8 +96,7 @@ class Server(QTcpServer):
                 'type': 'say',
                 'data': {
                     'nickname': self.clients[client]['nickname'],
-                    'text': message['data']['text'],
-                    'key': message['data']['key']
+                    'text': data['text']
                 }
             })
         elif type_ == 'a0':
