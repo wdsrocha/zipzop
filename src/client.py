@@ -27,10 +27,6 @@ class Client(QMainWindow):
         self.fk = self.fernetAlgorithm.key
         self.pbk, self.pvk = rsa.newkeys(1024, poolsize=4)
 
-        self.efk = rsa.encrypt(self.fk, self.pbk)
-
-        self.dfk = rsa.decrypt(self.efk, self.pvk)
-
         self.buddies = {}
 
         self.socket = QTcpSocket()
@@ -43,7 +39,7 @@ class Client(QMainWindow):
     def show_buddies(self):
         print(f'Buddies of {self.nickname} are:')
         for nickname, fk in self.buddies.items():
-            print(f'{nickname}: {fk}')
+            print(f'===>> {nickname}: {fk}')
         print()
 
     def send(self, message: dict):
@@ -141,6 +137,25 @@ class Client(QMainWindow):
 
             self.buddies.pop(data['nickname'])
 
+            return
+
+            self.fernetAlgorithm = FernetAlgorithm()
+            self.fk = self.fernetAlgorithm.key
+
+            efks = []
+            for nickname, user_data in self.buddies.items():
+                pbk = user_data['public_key']
+                pbk = rsa.PublicKey.load_pkcs1(pbk.encode('utf-8'))
+                efks.append(rsa_to_str(rsa.encrypt(self.fk, pbk)))
+
+            self.send({
+                'type': 'c0',
+                'data': {
+                    'from': self.nickname,
+                    'encrypted_fernet_keys': efks
+                }
+            })
+
         elif type_ == 'login_announce':
             self.chatWidget.ui.listWidget.addItem(data['nickname'])
             self.chatWidget.ui.textBrowser.append(data['text'])
@@ -174,8 +189,6 @@ class Client(QMainWindow):
             text = data['text'].encode('utf-8')
 
             fk = self.buddies[nickname]['fernet_key']
-            print(text)
-            print(type(text))
             text = self.fernetAlgorithm.decrypt(text, fk).decode('utf-8')
             self.chatWidget.ui.textBrowser.append(text)
 
