@@ -1,6 +1,7 @@
 import json
 import sys
 
+import rsa
 from qtpy.QtCore import Qt
 from qtpy.QtNetwork import QTcpSocket
 from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox
@@ -8,7 +9,7 @@ from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox
 from chat_widget import ChatWidget
 from fernet_algorithm import FernetAlgorithm
 from login_widget import LoginWidget
-from rsa_algorithm import RsaAlgorithm
+from utils import rsa_to_str, str_to_rsa
 
 
 class Client(QMainWindow):
@@ -20,9 +21,30 @@ class Client(QMainWindow):
 
         self.fernetAlgorithm = FernetAlgorithm()
 
+        # fk = fernet key
+        # pbk = public key
+        # pvk = private key
+        self.fk = self.fernetAlgorithm.key
+        self.pbk, self.pvk = rsa.newkeys(1024, poolsize=4)
+
+        self.efk = rsa.encrypt(self.fk, self.pbk)
+
+        self.dfk = rsa.decrypt(self.efk, self.pvk)
+
+        self.buddies = {}
+
         self.socket = QTcpSocket()
 
         self.setupConnections()
+
+        # tests
+        self.chatWidget.ui.listWidget.doubleClicked.connect(self.show_buddies)
+
+    def show_buddies(self):
+        print(f'Buddies of {self.nickname} are:')
+        for nickname, fk in self.buddies.items():
+            print(f'{nickname}: {fk}')
+        print()
 
     def send(self, message: dict):
         self.socket.write(json.dumps(message).encode('utf-8'))
@@ -42,7 +64,8 @@ class Client(QMainWindow):
             self.send({
                 'type': 'login',
                 'data': {
-                    'nickname': self.nickname
+                    'nickname': self.nickname,
+                    'public_key': self.pbk.save_pkcs1().decode('utf-8')
                 }
             })
 
@@ -95,17 +118,60 @@ class Client(QMainWindow):
             for nickname in data['nicknames']:
                 if nickname != self.nickname:
                     self.chatWidget.ui.listWidget.addItem(nickname)
-        elif message['type'] == 'logoff_announce':
+
+            efks = []
+            for nickname, pbk in zip(data['nicknames'], data['public_keys']):
+                pbk = rsa.PublicKey.load_pkcs1(pbk.encode('utf-8'))
+                efks.append(rsa_to_str(rsa.encrypt(self.fk, pbk)))
+
+            self.send({
+                'type': 'b0',
+                'data': {
+                    'from': self.nickname,
+                    'to': data['nicknames'],
+                    'encrypted_fernet_keys': efks
+                }
+            })
+
+        elif type_ == 'logoff_announce':
             items = self.chatWidget.ui.listWidget.findItems(
                 data['nickname'], Qt.MatchExactly)
             for item in items:
                 row = self.chatWidget.ui.listWidget.row(item)
                 self.chatWidget.ui.listWidget.takeItem(row)
             self.chatWidget.ui.textBrowser.append(data['text'])
-        elif message['type'] == 'login_announce':
+
+            self.buddies.pop(data['nickname'])
+
+        elif type_ == 'login_announce':
             self.chatWidget.ui.listWidget.addItem(data['nickname'])
             self.chatWidget.ui.textBrowser.append(data['text'])
-        elif message['type'] == 'say':
+
+            nickname = data['nickname']
+            pbk = data['public_key']
+
+            self.buddies[nickname] = {}
+
+            pbk = rsa.PublicKey.load_pkcs1(pbk.encode('utf-8'))
+            efk = rsa.encrypt(self.fk, pbk)
+
+            self.send({
+                'type': 'a0',
+                'data': {
+                    'from': self.nickname,
+                    'to': nickname,
+                    'encrypted_fernet_key': rsa_to_str(efk)
+                }
+            })
+
+        elif type_ == 'a1':
+            nickname = data['nickname']
+            efk = str_to_rsa(data['encrypted_fernet_key'])
+            fk = rsa.decrypt(efk, self.pvk)
+            self.buddies[nickname] = {}
+            self.buddies[nickname]['fernet_key'] = fk
+
+        elif type_ == 'say':
             text = message['data']['text']
             key = message['data']['key']
 
