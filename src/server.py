@@ -2,7 +2,7 @@ import json
 import sys
 
 from qtpy.QtNetwork import QTcpServer, QTcpSocket
-from qtpy.QtWidgets import QApplication, QLabel
+from qtpy.QtWidgets import QApplication, QLabel, QPushButton
 
 
 class Server(QTcpServer):
@@ -132,9 +132,10 @@ if __name__ == "__main__":
     port = 8080
     server.listen(port=port)
 
-    port_label = QLabel(f'Server listening on port {port}.')
-    port_label.setMargin(30)
+    port_label = QPushButton(f'Server listening on port {port}.')
+    port_label.clicked.connect(lambda: print(server.clients))
     port_label.show()
     port_label.setWindowTitle('Server')
+
 
     sys.exit(app.exec_())
