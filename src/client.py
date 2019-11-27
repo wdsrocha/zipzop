@@ -194,7 +194,8 @@ class Client(QMainWindow):
 
     def displayConnectionError(self):
         QMessageBox.information(self, '', 'No connection to host')
-        self.close()
+        if self.loginWidget.parent() is None:
+            self.close()
 
     def closeEvent(self, event):
         self.send({
