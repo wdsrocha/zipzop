@@ -18,8 +18,4 @@ And run as many clients you like!
 
 ## Coming soon (or not)
 
-- End-to-end encryption
-
-- GraphQL: seems like a good learning opportunity to test GraphQL here
-
 - Specific color for each client nickname (because why not?)
