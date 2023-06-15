@@ -6,7 +6,10 @@ A qtpy chat application
 
 First, get into the environment and install the dependencies
 
-`pipenv shell && pipenv install`
+* creating a virtual env: `python -m venv venv/`
+* open a virtual env (windows): `venv\\Scripts\\activate`
+* opean a virtual env(macOS/Linux): `source venv/bin/activate`
+* install dependencies: `pip install -r requirements.txt`
 
 Now, start the server
 
